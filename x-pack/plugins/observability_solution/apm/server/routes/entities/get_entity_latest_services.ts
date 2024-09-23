@@ -57,6 +57,7 @@ export async function getEntityLatestServices({
       },
     })
   ).hits.hits.map((hit) => normalizeFields(hit?.fields) as unknown as EntityLatestServiceRaw);
+  // todo: missing `fields` property
 
   return latestEntityServices;
 }
