@@ -688,7 +688,7 @@ export const tasks: TelemetryTask[] = [
           sort: {
             '@timestamp': 'desc',
           },
-          fields: ['*'],
+          fields: ['observer.version'],
         },
       });
 

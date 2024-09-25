@@ -29,7 +29,7 @@ import {
   OBSERVER_VERSION,
   OBSERVER_VERSION_MAJOR,
   PARENT_ID,
-  PROCESOR_NAME,
+  PROCESSOR_NAME,
   PROCESSOR_EVENT,
   SERVICE_ENVIRONMENT,
   SERVICE_FRAMEWORK_NAME,
@@ -48,7 +48,6 @@ import {
   SPAN_SUBTYPE,
   SPAN_SYNC,
   SPAN_TYPE,
-  SPAN_LINKS,
   TIMESTAMP,
   TRACE_ID,
   TRANSACTION_DURATION,
@@ -267,7 +266,7 @@ export const spanMapping = (fields: Partial<Record<string, unknown[]>>) => {
       outcome: normalizeValue<EventOutcome>(fields[EVENT_OUTCOME]),
     },
     processor: {
-      name: normalizeValue<'transaction'>(fields[PROCESOR_NAME]),
+      name: normalizeValue<'transaction'>(fields[PROCESSOR_NAME]),
       event: normalizeValue<'span'>(fields[PROCESSOR_EVENT]),
     },
     transaction: {
@@ -394,22 +393,16 @@ export const spanLinksDetailsMapping = (fields: Partial<Record<string, unknown[]
 };
 
 export const linkedParentsOfSpanMapping = (fields: Partial<Record<string, unknown[]>>) => {
-  return {
-    span: {
-      links: [
-        {
-          trace: {
-            // todo(milosz): confirm `span.links.trace.id` format
-            id: normalizeValue<string>(fields[SPAN_LINKS_TRACE_ID]),
-          },
-          span: {
-            // todo(milosz): confirm `span.links.span.id` format
-            id: normalizeValue<string>(fields[SPAN_LINKS_SPAN_ID]),
-          },
-        },
-      ],
-    },
-  };
+  return (fields[SPAN_LINKS_TRACE_ID] as string[]).map((v, index) => {
+    return {
+      trace: {
+        id: v,
+      },
+      span: {
+        id: fields[SPAN_LINKS_SPAN_ID]?.[index] ?? '',
+      },
+    };
+  }) as SpanLink[];
 };
 
 export const transactionMapping = (fields: Partial<Record<string, unknown[]>>) => {
@@ -449,7 +442,8 @@ export const transactionMapping = (fields: Partial<Record<string, unknown[]>>) =
       outcome: normalizeValue<EventOutcome>(fields[EVENT_OUTCOME]),
     },
     processor: {
-      event: normalizeValue<string>(fields[PROCESSOR_EVENT]),
+      event: normalizeValue<'transaction'>(fields[PROCESSOR_EVENT]),
+      name: normalizeValue<'transaction'>(fields[PROCESSOR_EVENT]),
     },
     data_stream: {
       namespace: normalizeValue<string>(fields[DATA_STREAM_NAMESPACE]),
@@ -458,11 +452,13 @@ export const transactionMapping = (fields: Partial<Record<string, unknown[]>>) =
     },
     span: {
       id: normalizeValue<string>(fields[SPAN_ID]),
+      links: linkedParentsOfSpanMapping(fields),
     },
     observer: {
       hostname: normalizeValue<string>(fields[OBSERVER_HOSTNAME]),
       type: normalizeValue<string>(fields[OBSERVER_TYPE]),
       version: normalizeValue<string>(fields[OBSERVER_VERSION]),
+      version_major: normalizeValue<number>(fields[OBSERVER_VERSION_MAJOR]),
     },
     timestamp: {
       us: normalizeValue<number>(fields[TIMESTAMP]),
@@ -521,7 +517,7 @@ export const traceDocMapping = (
         us: normalizeValue<number>(fields[SPAN_DURATION]),
       },
       action: normalizeValue<string>(fields[SPAN_ACTION]),
-      links: normalizeValue<SpanLink[]>(fields[SPAN_LINKS]),
+      links: linkedParentsOfSpanMapping(fields) as SpanLink[],
       composite: {
         count: normalizeValue<number>(fields[SPAN_COMPOSITE_COUNT]),
         sum: {
@@ -625,7 +621,7 @@ export const errorSampleDetails = (fields: Partial<Record<string, unknown[]>>): 
       grouping_key: normalizeValue<string>(fields[ERROR_GROUP_ID]),
     },
     processor: {
-      name: normalizeValue<'error'>(fields[PROCESOR_NAME]),
+      name: normalizeValue<'error'>(fields[PROCESSOR_NAME]),
       event: normalizeValue<'error'>(fields[PROCESSOR_EVENT]),
     },
     transaction: {
