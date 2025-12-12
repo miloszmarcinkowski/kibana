@@ -55,26 +55,17 @@ export const MetricsExperienceGridContent = ({
   const euiThemeContext = useEuiTheme();
   const { euiTheme } = euiThemeContext;
 
-  const { timeRange } = fetchParams;
-
-  const { searchTerm, currentPage, dimensions, valueFilters, onPageChange } =
-    useMetricsExperienceState();
+  const { searchTerm, currentPage, dimensions, onPageChange } = useMetricsExperienceState();
 
   const onFilterComplete = useCallback(() => {
     onPageChange(0);
   }, [onPageChange]);
 
-  const {
-    fields: filteredFields,
-    filters,
-    isLoading: isFilteredFieldsLoading,
-  } = useFilteredMetricFields({
+  const { fields: filteredFields } = useFilteredMetricFields({
     allFields,
     isFieldsLoading,
     dimensions,
     searchTerm,
-    valueFilters,
-    timeRange,
     onFilterComplete,
   });
 
@@ -133,7 +124,7 @@ export const MetricsExperienceGridContent = ({
                   </strong>
                 </EuiText>
               </EuiFlexItem>
-              {(isFilteredFieldsLoading || isFieldsLoading) && (
+              {isFieldsLoading && (
                 <EuiFlexItem grow={false}>
                   <EuiLoadingSpinner size="s" />
                 </EuiFlexItem>
@@ -160,13 +151,10 @@ export const MetricsExperienceGridContent = ({
         </EuiFlexGroup>
       </EuiFlexItem>
       <EuiFlexItem grow>
-        {(isDiscoverLoading || isFilteredFieldsLoading || isFieldsLoading) && (
-          <MetricsGridLoadingProgress />
-        )}
+        {(isDiscoverLoading || isFieldsLoading) && <MetricsGridLoadingProgress />}
         <MetricsGrid
           columns={columns}
           dimensions={dimensions}
-          filters={filters}
           services={services}
           fields={currentPageFields}
           onBrushEnd={onBrushEnd}

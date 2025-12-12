@@ -22,9 +22,6 @@ export interface MetricsExperienceRestorableState {
 
   // Metric grouping dimensions
   dimensions: Dimension[];
-
-  // Metric value filters
-  valueFilters: string[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

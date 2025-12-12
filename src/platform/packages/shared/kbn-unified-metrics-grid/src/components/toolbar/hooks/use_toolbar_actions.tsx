@@ -7,21 +7,18 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import type { MetricField } from '@kbn/metrics-experience-plugin/common/types';
 import { useEuiTheme, useIsWithinMaxBreakpoint } from '@elastic/eui';
-import type { TimeRange } from '@kbn/data-plugin/common';
 import { i18n } from '@kbn/i18n';
 import type { IconButtonGroupProps } from '@kbn/shared-ux-button-toolbar';
 import { css } from '@emotion/react';
 import { useMetricsExperienceState } from '../../../context/metrics_experience_state_provider';
 import { DimensionsSelector } from '../dimensions_selector';
-import { ValuesSelector } from '../values_selector';
 import { MAX_DIMENSIONS_SELECTIONS } from '../../../common/constants';
 import type { UnifiedMetricsGridProps } from '../../../types';
 
-interface UseToolbarActionsProps
-  extends Pick<UnifiedMetricsGridProps, 'fetchParams' | 'renderToggleActions'> {
+interface UseToolbarActionsProps extends Pick<UnifiedMetricsGridProps, 'renderToggleActions'> {
   fields: MetricField[];
   hideDimensionsSelector?: boolean;
   hideRightSideActions?: boolean;
@@ -29,31 +26,15 @@ interface UseToolbarActionsProps
 }
 export const useToolbarActions = ({
   fields,
-  fetchParams,
   renderToggleActions,
   hideDimensionsSelector = false,
   hideRightSideActions = false,
   isLoading = false,
 }: UseToolbarActionsProps) => {
-  const [timeRange, setTimeRange] = useState<TimeRange | undefined>(fetchParams.timeRange);
-  const [indices, setIndices] = useState<string[]>([
-    ...new Set(fields.map((field) => field.index)),
-  ]);
-
-  const {
-    dimensions,
-    valueFilters,
-    onDimensionsChange,
-    onValuesChange,
-    isFullscreen,
-    onToggleFullscreen,
-  } = useMetricsExperienceState();
+  const { dimensions, onDimensionsChange, isFullscreen, onToggleFullscreen } =
+    useMetricsExperienceState();
 
   const { euiTheme } = useEuiTheme();
-
-  const onClearValues = useCallback(() => {
-    onValuesChange([]);
-  }, [onValuesChange]);
 
   const isSmallScreen = useIsWithinMaxBreakpoint(isFullscreen ? 'm' : 'l');
 
@@ -61,13 +42,6 @@ export const useToolbarActions = ({
     () => (isFullscreen ? undefined : renderToggleActions()),
     [isFullscreen, renderToggleActions]
   );
-
-  useEffect(() => {
-    if (!isLoading) {
-      setIndices([...new Set(fields.map((field) => field.index))]);
-      setTimeRange(fetchParams.timeRange);
-    }
-  }, [isLoading, fields, fetchParams.timeRange]);
 
   const leftSideActions = useMemo(
     () => [
@@ -81,33 +55,8 @@ export const useToolbarActions = ({
           isLoading={isLoading}
         />
       ),
-      dimensions.length > 0 ? (
-        <ValuesSelector
-          selectedDimensions={dimensions}
-          selectedValues={valueFilters}
-          onChange={onValuesChange}
-          disabled={dimensions.length === 0}
-          indices={indices}
-          timeRange={timeRange}
-          onClear={onClearValues}
-          fullWidth={isSmallScreen}
-          isLoading={isLoading}
-        />
-      ) : null,
     ],
-    [
-      isSmallScreen,
-      dimensions,
-      fields,
-      indices,
-      onClearValues,
-      onDimensionsChange,
-      onValuesChange,
-      timeRange,
-      valueFilters,
-      hideDimensionsSelector,
-      isLoading,
-    ]
+    [isSmallScreen, dimensions, fields, onDimensionsChange, hideDimensionsSelector, isLoading]
   );
 
   const rightSideActions: IconButtonGroupProps['buttons'] = useMemo(() => {

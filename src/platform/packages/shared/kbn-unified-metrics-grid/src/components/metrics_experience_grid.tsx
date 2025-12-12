@@ -9,10 +9,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { keys } from '@elastic/eui';
-import {
-  METRICS_BREAKDOWN_SELECTOR_DATA_TEST_SUBJ,
-  METRICS_VALUES_SELECTOR_DATA_TEST_SUBJ,
-} from '../common/constants';
+import { METRICS_BREAKDOWN_SELECTOR_DATA_TEST_SUBJ } from '../common/constants';
 import { useMetricsExperienceState } from '../context/metrics_experience_state_provider';
 import { MetricsGridWrapper } from './metrics_grid_wrapper';
 import { EmptyState } from './empty_state/empty_state';
@@ -36,7 +33,7 @@ export const MetricsExperienceGrid = ({
   isComponentVisible,
 }: UnifiedMetricsGridProps) => {
   const { dataView, timeRange } = fetchParams;
-  const { searchTerm, isFullscreen, valueFilters, onSearchTermChange, onToggleFullscreen } =
+  const { searchTerm, isFullscreen, onSearchTermChange, onToggleFullscreen } =
     useMetricsExperienceState();
 
   const indexPattern = useMemo(() => dataView?.getIndexPattern() ?? 'metrics-*', [dataView]);
@@ -48,7 +45,6 @@ export const MetricsExperienceGrid = ({
   const { toggleActions, leftSideActions, rightSideActions } = useToolbarActions({
     fields,
     renderToggleActions,
-    fetchParams,
     isLoading: isFetchingAllFields,
   });
 
@@ -62,7 +58,7 @@ export const MetricsExperienceGrid = ({
     [isFullscreen, onToggleFullscreen]
   );
 
-  if (fields.length === 0 && valueFilters.length === 0) {
+  if (fields.length === 0) {
     return <EmptyState isLoading={isFetchingAllFields} />;
   }
 
@@ -114,12 +110,9 @@ const areSelectorPortalsOpen = () => {
     const hasBreakdownSelector = portal.querySelector(
       `[data-test-subj*=${METRICS_BREAKDOWN_SELECTOR_DATA_TEST_SUBJ}]`
     );
-    const hasValuesSelector = portal.querySelector(
-      `[data-test-subj*=${METRICS_VALUES_SELECTOR_DATA_TEST_SUBJ}]`
-    );
     const hasSelectableList = portal.querySelector('[data-test-subj*="Selectable"]');
 
-    if (hasBreakdownSelector || hasValuesSelector || hasSelectableList) {
+    if (hasBreakdownSelector || hasSelectableList) {
       // Check if the portal is visible and has focusable content
       const style = window.getComputedStyle(portal);
       if (style.display !== 'none' && style.visibility !== 'hidden') {
